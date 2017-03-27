@@ -217,6 +217,7 @@ public class MainActivity extends GvrActivity implements
 
         public boolean connect() {
             //int p = Integer.parseInt(port.getText().toString());
+            //String h = "10.216.217.24"; //setting it in @set method
             //String h = hostname.getText().toString();
             InetAddress serverAddr;
             try {
@@ -226,6 +227,7 @@ public class MainActivity extends GvrActivity implements
                 return false;
             }
             try {
+                //stops here
                 socket = new Socket(serverAddr, port);
             } catch (IOException e) {
                 mkmsg("Err: Unable to make connection");
