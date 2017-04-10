@@ -140,7 +140,7 @@ public class MainActivity extends GvrActivity implements
           which would set cmdn="move 0 -1";
          */
 
-        if(angle > -23 && angle < 22) { //moving up
+        if((angle > -1 && angle < 22) || (angle > 338 && angle < 361)) { //moving up
            cmdn = "move 0 -1";
         }
         if(angle > 22 && angle < 68) { //moving right & up
@@ -153,18 +153,17 @@ public class MainActivity extends GvrActivity implements
             cmdn = "move 1 1";
         }
 
-        if(angle < -23 && angle > -68) { //left & up
-            cmdn = "move -1 -1";
+        if(angle > 158 && angle < 203) { //down
+            cmdn = "move 0, 1";
         }
-        if(angle < -68 && angle > -114) { //left
+        if(angle > 203 && angle < 248) { //left & down
+            cmdn = "move -1, 1";
+        }
+        if(angle > 248 && angle < 293) { //left
             cmdn = "move -1 0";
         }
-        if(angle < -114 && angle > -158) { //left & down
-            cmdn = "move -1 1";
-        }
-
-        if((angle < -158 && angle > -180) || (angle > 158 && angle < 180)) { //down
-            cmdn = "move 0, 1";
+        if(angle > 293 && angle < 338) { //left & up
+            cmdn = "move -1 -1";
         }
 
 
@@ -471,7 +470,7 @@ public class MainActivity extends GvrActivity implements
         @Override
         public void onApiStatusChanged(int state) {
             apiStatus = ApiStatus.toString(state);
-            handler.post(this);
+            uiHandler.post(this);
         }
 
         @Override
@@ -493,25 +492,24 @@ public class MainActivity extends GvrActivity implements
 
            // controller.update();
             uiHandler.post(this);
-            Log.wtf("onUpdate", "onUpdate here");
             //myGVRFrag.show3dToast("onTouch");
 
             //if(connected) { ..
             if (controller.isTouching) {
                 //myGVRFrag.show3dToast("onTouch");
                 onMove(getAngle());
-                //TODO: sending move message here?
                 Log.d("RUN", "touching");
 
             } else {
-                Log.wtf("onUpdate", "NOT TOUCHING");
+                //Log.wtf("onUpdate", "NOT TOUCHING");
+                if(controller.appButtonState) {
+                    onFire(getAngle());
+                    Log.d("RUN", "appButtonn");
+                }
             }
 
 
-            if(controller.appButtonState) {
-                onFire(getAngle());
-                Log.d("RUN", "appButtonn");
-            }
+
 
 
         }
