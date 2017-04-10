@@ -89,6 +89,10 @@ public class GVRFragment extends Fragment {
         return myView;
     }
 
+    public void show3dToast(String str) {
+        overlayView.show3DToast(str);
+    }
+
     public void setme(float x, float y) {
         //this is my location, so change render camera view.
         if (render != null)  //so it appears the status get called sometimes, before the vr has setup!

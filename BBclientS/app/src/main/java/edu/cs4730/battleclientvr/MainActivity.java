@@ -67,11 +67,12 @@ public class MainActivity extends GvrActivity implements
         controllerManager = new ControllerManager(this, listener);
         controller = controllerManager.getController();
         controller.setEventListener(listener);
+        controllerManager.start();
 
-        //listener.run();
+
         //pretending for testing controller work
         AndroidCompat.setVrModeEnabled(this, true);
-
+        //listener.run();
 
         fragmentManager.beginTransaction().replace(R.id.container, myConnectFrag).commit();
 
@@ -136,6 +137,44 @@ public class MainActivity extends GvrActivity implements
         if I could suggest group of 45 angle, which is +/-22.5 from say 0 (UP), but we are using integers, so 22 or 23 you'll call..
           which would set cmdn="move 0 -1";
          */
+
+        if(angle > -23 && angle < 22) { //moving up
+           cmdn = "move 0 -1";
+        }
+        if(angle > 22 && angle < 68) { //moving right & up
+            cmdn = "move 1 -1";
+        }
+        if(angle > 68 && angle < 114) { //right
+            cmdn = "move 1 0";
+        }
+        if(angle > 114 && angle < 158) { //right & down
+            cmdn = "move 1 1";
+        }
+
+        if(angle < -23 && angle > -68) { //left & up
+            cmdn = "move -1 -1";
+        }
+        if(angle < -68 && angle > -114) { //left
+            cmdn = "move -1 0";
+        }
+        if(angle < -114 && angle > -158) { //left & down
+            cmdn = "move -1 1";
+        }
+
+        if((angle < -158 && angle > -180) || (angle > 158 && angle < 180)) { //down
+            cmdn = "move 0, 1";
+        }
+
+
+        synchronized (mynetwork.cmd) {
+            mynetwork.cmd = cmdn;
+        }
+    }
+
+    private void onFire(int angle) {
+
+        String cmdn = "fire " + angle;
+
         synchronized (mynetwork.cmd) {
             mynetwork.cmd = cmdn;
         }
@@ -322,16 +361,19 @@ public class MainActivity extends GvrActivity implements
                     myGVRFrag.setme(Float.parseFloat(str[1]), Float.parseFloat(str[2]));
                     mr = Integer.parseInt(str[3]); //movement rate
                     sl = Integer.parseInt(str[4]);
-                    synchronized (cmd) {
 
+
+                    synchronized (cmd) {
+                        writeln(cmd); //sending to server
                         if (mr != 0 && sl != 0)
                             doScan();
                         else if (cmd.compareTo("") == 0)   // there is no command, so issue a scan
                             doScan();
                         else if (cmd.startsWith("fire") && sl != 0)
                             doScan();
-                        else if (cmd.startsWith("move") && mr != 0)
+                        else if (cmd.startsWith("move") && mr != 0) {
                             doScan();
+                        }
                         else {
                             writeln(cmd);
                             Log.d(TAG, "Wrote: " + cmd);
@@ -402,7 +444,7 @@ public class MainActivity extends GvrActivity implements
     @Override
     protected void onStart() {
         super.onStart();
-        controllerManager.start();
+        //controllerManager.start();
 
     }
 
@@ -417,7 +459,7 @@ public class MainActivity extends GvrActivity implements
     // listener handles both ControllerManager.EventListener and Controller.EventListener events.
 
     private class EventListener extends Controller.EventListener
-            implements ControllerManager.EventListener, Runnable {
+            implements ControllerManager.EventListener{
         // The status of the overall controller API. This is primarily used for error handling since
         // it rarely changes.
         private String apiStatus;
@@ -428,13 +470,11 @@ public class MainActivity extends GvrActivity implements
         @Override
         public void onApiStatusChanged(int state) {
             apiStatus = ApiStatus.toString(state);
-            Toast.makeText(getApplicationContext(), "status: " + apiStatus, Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onConnectionStateChanged(int state) {
             controllerState = state;
-            Toast.makeText(getApplicationContext(), "State: " + controllerState, Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -443,32 +483,25 @@ public class MainActivity extends GvrActivity implements
             // Most apps don't care about this, but apps that want to implement custom behavior when a
             // recentering occurs should use this callback.
             //controllerOrientationView.resetYaw();
-            Toast.makeText(getApplicationContext(), "recentered: " + this, Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onUpdate() {
-            Toast.makeText(getApplicationContext(), "onUpdate: " + this, Toast.LENGTH_SHORT).show();
-        }
-
-        // Update the various TextViews in the UI thread.
-        @Override
-        public void run() {
-            Toast.makeText(getApplicationContext(), "onUpdate: " + this, Toast.LENGTH_SHORT).show();
+           // Toast.makeText(getApplicationContext(), "onUpdate: " + this, Toast.LENGTH_SHORT).show();
             controller.update();
-
+            Log.wtf("onUpdate", "onUpdate here");
+            //myGVRFrag.show3dToast("onTouch");
             if (controller.isTouching) {
-                Toast.makeText(getApplicationContext(), "Touching: " + controller.touch.x + controller.touch.y,
-                        Toast.LENGTH_SHORT).show();
+                //myGVRFrag.show3dToast("onTouch");
+                onMove(getAngle());
+                //TODO: sending move message here?
                 Log.d("RUN", "touching");
 
             } else {
-                Toast.makeText(getApplicationContext(), "noTouch: " + this, Toast.LENGTH_SHORT).show();
+                Log.wtf("onUpdate", "NOT TOUCHING");
             }
-
-            Toast.makeText(getApplicationContext(), "whaat " + this, Toast.LENGTH_SHORT).show();
-
         }
+
     }
 
 }
