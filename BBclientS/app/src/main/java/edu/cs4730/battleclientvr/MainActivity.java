@@ -32,6 +32,8 @@ public class MainActivity extends GvrActivity implements
     String TAG = "MainActivity";
 
 
+    private Handler uiHandler = new Handler();
+
     //object used for waiting
     // private static final Object lock = new Object();
 
@@ -364,7 +366,6 @@ public class MainActivity extends GvrActivity implements
 
 
                     synchronized (cmd) {
-                        writeln(cmd); //sending to server
                         if (mr != 0 && sl != 0)
                             doScan();
                         else if (cmd.compareTo("") == 0)   // there is no command, so issue a scan
@@ -450,7 +451,7 @@ public class MainActivity extends GvrActivity implements
 
     @Override
     protected void onStop() {
-        controllerManager.stop();
+        //controllerManager.stop();
         super.onStop();
     }
 
@@ -459,7 +460,7 @@ public class MainActivity extends GvrActivity implements
     // listener handles both ControllerManager.EventListener and Controller.EventListener events.
 
     private class EventListener extends Controller.EventListener
-            implements ControllerManager.EventListener{
+            implements ControllerManager.EventListener, Runnable{
         // The status of the overall controller API. This is primarily used for error handling since
         // it rarely changes.
         private String apiStatus;
@@ -470,11 +471,13 @@ public class MainActivity extends GvrActivity implements
         @Override
         public void onApiStatusChanged(int state) {
             apiStatus = ApiStatus.toString(state);
+            handler.post(this);
         }
 
         @Override
         public void onConnectionStateChanged(int state) {
             controllerState = state;
+            uiHandler.post(this);
         }
 
         @Override
@@ -487,10 +490,13 @@ public class MainActivity extends GvrActivity implements
 
         @Override
         public void onUpdate() {
-           // Toast.makeText(getApplicationContext(), "onUpdate: " + this, Toast.LENGTH_SHORT).show();
-            controller.update();
+
+           // controller.update();
+            uiHandler.post(this);
             Log.wtf("onUpdate", "onUpdate here");
             //myGVRFrag.show3dToast("onTouch");
+
+            //if(connected) { ..
             if (controller.isTouching) {
                 //myGVRFrag.show3dToast("onTouch");
                 onMove(getAngle());
@@ -500,6 +506,19 @@ public class MainActivity extends GvrActivity implements
             } else {
                 Log.wtf("onUpdate", "NOT TOUCHING");
             }
+
+
+            if(controller.appButtonState) {
+                onFire(getAngle());
+                Log.d("RUN", "appButtonn");
+            }
+
+
+        }
+
+        @Override
+        public void run() {
+            controller.update();
         }
 
     }
