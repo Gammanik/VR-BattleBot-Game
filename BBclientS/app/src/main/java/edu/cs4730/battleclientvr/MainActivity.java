@@ -62,7 +62,15 @@ public class MainActivity extends GvrActivity implements
         fragmentManager = getFragmentManager();
         myConnectFrag = new ConnectFragment();
 
-        //setup DD controller here if needed.
+        //setup DD controller here
+        EventListener listener = new EventListener();
+        controllerManager = new ControllerManager(this, listener);
+        controller = controllerManager.getController();
+        controller.setEventListener(listener);
+
+        //listener.run();
+        //pretending for testing controller work
+        AndroidCompat.setVrModeEnabled(this, true);
 
 
         fragmentManager.beginTransaction().replace(R.id.container, myConnectFrag).commit();
@@ -88,6 +96,7 @@ public class MainActivity extends GvrActivity implements
         if (!connected) {
             mynetwork = new network();
             mynetwork.set(host, port, botline);
+            //starting network Thread
             new Thread(mynetwork).start();
         }
         //once connected and we have the info, it will switch the GVRfragment to display the game.
@@ -393,24 +402,75 @@ public class MainActivity extends GvrActivity implements
     @Override
     protected void onStart() {
         super.onStart();
-        //controllerManager.start();
+        controllerManager.start();
 
     }
 
     @Override
     protected void onStop() {
-        //controllerManager.stop();
-
+        controllerManager.stop();
         super.onStop();
     }
 
 
     // We receive all events from the Controller through this listener. In this example, our
     // listener handles both ControllerManager.EventListener and Controller.EventListener events.
-/*
-    private class EventListener extends Controller.EventListener
-            implements ControllerManager.EventListener {
 
+    private class EventListener extends Controller.EventListener
+            implements ControllerManager.EventListener, Runnable {
+        // The status of the overall controller API. This is primarily used for error handling since
+        // it rarely changes.
+        private String apiStatus;
+
+        // The state of a specific Controller connection.
+        private int controllerState = ConnectionStates.DISCONNECTED;
+
+        @Override
+        public void onApiStatusChanged(int state) {
+            apiStatus = ApiStatus.toString(state);
+            Toast.makeText(getApplicationContext(), "status: " + apiStatus, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onConnectionStateChanged(int state) {
+            controllerState = state;
+            Toast.makeText(getApplicationContext(), "State: " + controllerState, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onRecentered() {
+            // In a real GVR application, this would have implicitly called recenterHeadTracker().
+            // Most apps don't care about this, but apps that want to implement custom behavior when a
+            // recentering occurs should use this callback.
+            //controllerOrientationView.resetYaw();
+            Toast.makeText(getApplicationContext(), "recentered: " + this, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onUpdate() {
+            Toast.makeText(getApplicationContext(), "onUpdate: " + this, Toast.LENGTH_SHORT).show();
+        }
+
+        // Update the various TextViews in the UI thread.
+        @Override
+        public void run() {
+            Toast.makeText(getApplicationContext(), "onUpdate: " + this, Toast.LENGTH_SHORT).show();
+            controller.update();
+
+            if (controller.isTouching) {
+                Toast.makeText(getApplicationContext(), "Touching: " + controller.touch.x + controller.touch.y,
+                        Toast.LENGTH_SHORT).show();
+                Log.d("RUN", "touching");
+
+            } else {
+                Toast.makeText(getApplicationContext(), "noTouch: " + this, Toast.LENGTH_SHORT).show();
+            }
+
+            Toast.makeText(getApplicationContext(), "whaat " + this, Toast.LENGTH_SHORT).show();
+
+        }
     }
-*/
+
 }
+
+
