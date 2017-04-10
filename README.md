@@ -1,5 +1,9 @@
-# prog4_files
-Program 4 Files.
+# BattleBot game
 
-BBclientS is the code you can use.  You may want to rename the directory.
-clients and BatBot152.jar for clients like strafe and server.
+to create a server
+    run from root folder: java -jar BatBot152.jar <numberOfBots>
+to add a bot:
+    run from ./client: java -jar <any.jar>
+to connect phone:
+    put local IP adress of computer to host field
+
